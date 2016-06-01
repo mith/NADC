@@ -30,6 +30,8 @@ public class PlayerController : NetworkBehaviour
 		childCamera.SetActive (true);
 	}
 
+	bool shooting;
+
 	[ClientCallback]
 	void Update ()
 	{
@@ -44,14 +46,34 @@ public class PlayerController : NetworkBehaviour
 		transform.Translate (x, y, 0);
 
 		if (Input.GetMouseButtonDown (0)) {
-			var mousePos = childCamera.GetComponent<Camera> ().ScreenToWorldPoint (Input.mousePosition);
+			if (!shooting) {
+				StartCoroutine (Shoot ());
+			}
+		}
+	}
 
-			var direction = Mathf.Atan2 (
-				                transform.position.y - mousePos.y, 
-				                transform.position.x - mousePos.x) * 180 / Mathf.PI;
+	Quaternion CursorDirection ()
+	{
+		var mousePos = childCamera.GetComponent<Camera> ().ScreenToWorldPoint (Input.mousePosition);
 
-			var dirQ = Quaternion.Euler (0, 0, direction + 90);
-			CmdFire (dirQ);
+		var direction = Mathf.Atan2 (
+			                transform.position.y - mousePos.y, 
+			                transform.position.x - mousePos.x) * 180 / Mathf.PI;
+
+		return Quaternion.Euler (0, 0, direction + 90);	
+	}
+
+	IEnumerator Shoot ()
+	{
+		for (;;) {
+			CmdFire (CursorDirection ());
+			shooting = true;
+			yield return new WaitForSeconds (0.5f);
+
+			if (!Input.GetMouseButton (0)) {
+				shooting = false;
+				break;
+			}
 		}
 	}
 
