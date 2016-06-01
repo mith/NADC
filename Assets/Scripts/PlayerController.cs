@@ -9,9 +9,13 @@ public class PlayerController : NetworkBehaviour
 
 	public float playerSpeed = 4;
 
+	GameObject childCamera;
+
 	public override void OnStartLocalPlayer ()
 	{
 		GetComponent<SpriteRenderer> ().color = new Color (0, 1, 0);
+		childCamera = transform.FindChild ("ChildCamera").gameObject;
+		childCamera.SetActive (true);
 	}
 
 	void Update ()
@@ -26,7 +30,7 @@ public class PlayerController : NetworkBehaviour
 		transform.Translate (x, y, 0);
 
 		if (Input.GetMouseButtonDown (0)) {
-			var mousePos = Camera.main.ScreenToWorldPoint (Input.mousePosition);
+			var mousePos = childCamera.GetComponent<Camera> ().ScreenToWorldPoint (Input.mousePosition);
 
 			var direction = Mathf.Atan2 (
 				                transform.position.y - mousePos.y, 
