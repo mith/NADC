@@ -13,16 +13,24 @@ public class Health : NetworkBehaviour
 	public void TakeDamage (int amount)
 	{
 		health -= amount;
+		RpcBleed ();
 		if (health <= 0) {
-			RpcRespawn ();
+			var spawn = NetworkManager.singleton.GetStartPosition ();
+			RpcRespawn (spawn.position);
 		}
 	}
 
 	[ClientRpc]
-	void RpcRespawn ()
+	void RpcBleed ()
+	{
+		transform.Find ("Blood").GetComponent<ParticleSystem> ().Emit (3);
+	}
+
+	[ClientRpc]
+	void RpcRespawn (Vector3 position)
 	{
 		if (isLocalPlayer) {
-			transform.position = Vector3.zero;
+			transform.position = position;
 		}
 	}
 }
