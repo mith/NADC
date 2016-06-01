@@ -16,7 +16,7 @@ public class PlayerController : NetworkBehaviour
 
 	void Awake ()
 	{
-		playerColor = Random.ColorHSV ();
+		playerColor = Random.ColorHSV (0, 1, 0.2f, 1, 0.5f, 1);
 	}
 
 	void Start ()
