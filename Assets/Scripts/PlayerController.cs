@@ -11,21 +11,35 @@ public class PlayerController : NetworkBehaviour
 
 	GameObject childCamera;
 
+	[SyncVar]
+	Color playerColor;
+
+	void Awake ()
+	{
+		playerColor = Random.ColorHSV ();
+	}
+
+	void Start ()
+	{
+		GetComponent<SpriteRenderer> ().color = playerColor;
+	}
+
 	public override void OnStartLocalPlayer ()
 	{
-		GetComponent<SpriteRenderer> ().color = new Color (0, 1, 0);
 		childCamera = transform.FindChild ("ChildCamera").gameObject;
 		childCamera.SetActive (true);
 	}
 
+	[ClientCallback]
 	void Update ()
 	{
-
 		if (!isLocalPlayer)
 			return;
 		
 		var x = Input.GetAxis ("Horizontal") * playerSpeed * Time.deltaTime;
 		var y = Input.GetAxis ("Vertical") * playerSpeed * Time.deltaTime;
+
+		GetComponent<Rigidbody2D> ().velocity = new Vector2 (x, y);
 
 		transform.Translate (x, y, 0);
 
@@ -48,7 +62,7 @@ public class PlayerController : NetworkBehaviour
 		var bullet = (GameObject)Instantiate (
 			             arrowPrefab,
 			             transform.position + (direction * transform.up).normalized,
-			             direction);
+			             direction * Quaternion.Euler (0, 0, 90));
 
 		bullet.GetComponent<Rigidbody2D> ().velocity = (direction * transform.up).normalized * arrowSpeed;
 

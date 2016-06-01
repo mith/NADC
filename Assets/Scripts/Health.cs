@@ -9,11 +9,9 @@ public class Health : NetworkBehaviour
 	[SyncVar]
 	public int health = maxHealth;
 
+	[Server]
 	public void TakeDamage (int amount)
 	{
-		if (!isServer)
-			return;
-
 		health -= amount;
 		if (health <= 0) {
 			RpcRespawn ();
