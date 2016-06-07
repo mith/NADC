@@ -126,7 +126,7 @@ Prefab:
       objectReference: {fileID: 0}
     - target: {fileID: 11473402, guid: ae93284e4f92b42308b344c10ba504e8, type: 2}
       propertyPath: m_UseWebSockets
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 11473402, guid: ae93284e4f92b42308b344c10ba504e8, type: 2}
       propertyPath: m_DontDestroyOnLoad

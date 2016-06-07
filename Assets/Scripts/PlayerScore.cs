@@ -38,7 +38,15 @@ public class PlayerScore : NetworkBehaviour
 	public void KilledPlayer ()
 	{
 		Kills++;
-		KillsCounter = GameObject.Find ("HUD").transform.FindChild ("KillsCounter").GetComponent<Text> ();
-		KillsCounter.text = Kills.ToString ();
+		RpcUpdateKillCounter ();
+	}
+
+	[ClientRpc]
+	void RpcUpdateKillCounter ()
+	{
+		if (isLocalPlayer) {
+			KillsCounter = GameObject.Find ("HUD").transform.FindChild ("KillsCounter").GetComponent<Text> ();
+			KillsCounter.text = Kills.ToString ();
+		}
 	}
 }
