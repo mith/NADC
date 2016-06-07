@@ -4,6 +4,7 @@ using System.Collections;
 
 public class PlayerController : NetworkBehaviour
 {
+	public GameObject hudPrefab;
 	public GameObject arrowPrefab;
 	public float arrowSpeed = 10;
 
@@ -28,6 +29,10 @@ public class PlayerController : NetworkBehaviour
 	{
 		childCamera = transform.FindChild ("ChildCamera").gameObject;
 		childCamera.SetActive (true);
+
+
+
+		Instantiate (hudPrefab).name = "HUD";
 	}
 
 	bool shooting;
@@ -89,6 +94,8 @@ public class PlayerController : NetworkBehaviour
 		bullet.GetComponent<Rigidbody2D> ().velocity = (direction * transform.up).normalized * arrowSpeed;
 
 		NetworkServer.Spawn (bullet);
+
+		bullet.GetComponent<Arrow> ().ShotBy = this.gameObject;
 
 		Destroy (bullet, 3.0f);
 	}

@@ -4,19 +4,44 @@ using System.Collections;
 
 public class Health : NetworkBehaviour
 {
-	public const int maxHealth = 100;
+	public delegate void DeathDelegate (NetworkInstanceId player, NetworkInstanceId killedBy);
+
+	public delegate void HealthChangeDelegate (int amount, int oldHealth, int newHealth);
+
+	[SyncEvent]
+	public event DeathDelegate EventDeath;
+
+	[SyncEvent]
+	public event HealthChangeDelegate EventHealthChange;
+
+	public int maxHealth = 100;
 
 	[SyncVar]
-	public int health = maxHealth;
+	public int health;
+
+	public override void OnStartServer ()
+	{
+		health = maxHealth;
+		base.OnStartServer ();
+	}
 
 	[Server]
-	public void TakeDamage (int amount)
+	public void TakeDamage (GameObject byPlayer, int amount)
 	{
+		int oldHealth = health;
 		health -= amount;
+		EventHealthChange (-amount, oldHealth, health);
 		RpcBleed ();
 		if (health <= 0) {
 			var spawn = NetworkManager.singleton.GetStartPosition ();
+			EventDeath (GetComponent<NetworkIdentity> ().netId, byPlayer.GetComponent<NetworkIdentity> ().netId);
+			health = maxHealth;
+			EventHealthChange (maxHealth, 0, maxHealth);
 			RpcRespawn (spawn.position);
+
+			if (byPlayer != this.gameObject) {
+				byPlayer.GetComponent<PlayerScore> ().KilledPlayer ();
+			}
 		}
 	}
 

@@ -124,6 +124,22 @@ Prefab:
       propertyPath: m_RootOrder
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 11473402, guid: ae93284e4f92b42308b344c10ba504e8, type: 2}
+      propertyPath: m_UseWebSockets
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 11473402, guid: ae93284e4f92b42308b344c10ba504e8, type: 2}
+      propertyPath: m_DontDestroyOnLoad
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11473402, guid: ae93284e4f92b42308b344c10ba504e8, type: 2}
+      propertyPath: m_RunInBackground
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11473402, guid: ae93284e4f92b42308b344c10ba504e8, type: 2}
+      propertyPath: m_PlayerPrefab
+      value: 
+      objectReference: {fileID: 148566, guid: faad30eccae2049029a423efce81d1f0, type: 2}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: ae93284e4f92b42308b344c10ba504e8, type: 2}
   m_IsPrefabParent: 0
