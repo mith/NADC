@@ -21,7 +21,8 @@ public class PlayerScore : NetworkBehaviour
 			GetComponent<Health> ().EventDeath += (player, killedBy) => {
 				Debug.Log ("Some idiot got killed!");
 				Deaths++;
-			};
+            };
+                
 		}
 
 		if (isLocalPlayer) {
@@ -38,6 +39,7 @@ public class PlayerScore : NetworkBehaviour
 	public void KilledPlayer ()
 	{
 		Kills++;
+        Debug.Log("Killed a bitch!");
 		RpcUpdateKillCounter ();
 	}
 

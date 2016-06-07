@@ -38,10 +38,6 @@ public class Health : NetworkBehaviour
 			health = maxHealth;
 			EventHealthChange (maxHealth, 0, maxHealth);
 			RpcRespawn (spawn.position);
-
-			if (byPlayer != this.gameObject) {
-				byPlayer.GetComponent<PlayerScore> ().KilledPlayer ();
-			}
 		}
 	}
 
