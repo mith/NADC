@@ -29,7 +29,7 @@ public class PlayerScore : NetworkBehaviour
 			if (player == this.netId) {
 				Deaths++;
 			}
-			if (killedBy == this.netId) {
+            if (killedBy == this.netId && player != this.netId) {
 				Kills++;
 			}
 		};

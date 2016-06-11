@@ -6,11 +6,9 @@ public class Arrow : NetworkBehaviour
 {
 	public GameObject ShotBy;
 
+    [ServerCallback]
 	void OnCollisionEnter2D (Collision2D collision)
 	{
-		if (!isServer)
-			return;
-		
 		var hit = collision.gameObject;
 		var hitPlayer = hit.GetComponent<PlayerController> ();
 		if (hitPlayer != null) {

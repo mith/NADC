@@ -6,12 +6,11 @@ public class Health : NetworkBehaviour
 {
 	public delegate void DeathDelegate (NetworkInstanceId player, NetworkInstanceId killedBy);
 
-	public delegate void HealthChangeDelegate (int amount, int oldHealth, int newHealth);
+	public delegate void HealthChangeDelegate (NetworkInstanceId player, int amount, int oldHealth, int newHealth);
 
-	[SyncEvent]
+
 	public event DeathDelegate EventDeath;
 
-	[SyncEvent]
 	public event HealthChangeDelegate EventHealthChange;
 
 	public int maxHealth = 100;
@@ -28,16 +27,29 @@ public class Health : NetworkBehaviour
 	[Server]
 	public void TakeDamage (GameObject byPlayer, int amount)
 	{
+        NetworkInstanceId currentPlayerId = GetComponent<NetworkIdentity>().netId;
+        NetworkInstanceId byPlayerId = byPlayer.GetComponent<NetworkIdentity>().netId;
 		int oldHealth = health;
 		health -= amount;
-		EventHealthChange (-amount, oldHealth, health);
+        if (EventHealthChange != null) {
+            EventHealthChange(currentPlayerId, -amount, oldHealth, health);
+        }
 		RpcBleed ();
+        Debug.Log("Player " + currentPlayerId + " took " + amount + " damage from player " + byPlayerId);
 		if (health <= 0) {
 			var spawn = NetworkManager.singleton.GetStartPosition ();
-			EventDeath (GetComponent<NetworkIdentity> ().netId, byPlayer.GetComponent<NetworkIdentity> ().netId);
-			health = maxHealth;
-			EventHealthChange (maxHealth, 0, maxHealth);
-			RpcRespawn (spawn.position);
+            RpcRespawn (spawn.position);
+            health = maxHealth;
+
+            if (EventDeath != null) {
+                EventDeath(currentPlayerId, byPlayerId);
+            }
+	
+            if (EventHealthChange != null) {
+                EventHealthChange(currentPlayerId, maxHealth, 0, maxHealth);
+            }
+
+            Debug.Log("Player " + currentPlayerId + " was killed by " + byPlayerId);
 		}
 	}
 

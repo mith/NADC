@@ -8,22 +8,29 @@ public class HealthHUD : NetworkBehaviour
 
 	public GameObject HealthDisplay;
 
-	// Use this for initialization
-	void Start ()
-	{
-		if (isLocalPlayer) {
-			HealthDisplay = GameObject.Find ("HUD").transform.FindChild ("HealthBackground/Health").gameObject;
-			var maxHp = GetComponent<Health> ().maxHealth;
-			var hpImage = HealthDisplay.GetComponent<Image> ();
-			GetComponent<Health> ().EventHealthChange += (int amount, int oldHealth, int newHealth) => {
-				Debug.Log ("Update health bar");
-				if (newHealth > 0) {
-					hpImage.fillAmount = (float)newHealth / (float)maxHp;
-				} else {
-					hpImage.fillAmount = 0;
-				}
-			};
-		}
-	
-	}
+
+    public void RegisterEvents(GameManager gameManager)
+    {
+        gameManager.EventHealthChange += (player, amount, oldHealth, newHealth) => {
+            if (player == GetComponent<NetworkIdentity>().netId) {
+                RpcUpdateHealthBar(newHealth);
+            }
+        };
+    }
+
+    [ClientRpc]
+    void RpcUpdateHealthBar(int current)
+    {
+        if (isLocalPlayer) {
+            HealthDisplay = GameObject.Find("HUD").transform.FindChild("HealthBackground/Health").gameObject;
+            var maxHp = GetComponent<Health>().maxHealth;
+            var hpImage = HealthDisplay.GetComponent<Image>();
+
+            if (current > 0) {
+                hpImage.fillAmount = (float)current / (float)maxHp;
+            } else {
+                hpImage.fillAmount = 0;
+            }
+        }
+    }
 }
