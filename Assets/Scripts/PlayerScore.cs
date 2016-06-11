@@ -8,47 +8,44 @@ public class PlayerScore : NetworkBehaviour
 	public Text KillsCounter;
 	public Text DeathsCounter;
 
-	[SyncVar]
+	[SyncVar (hook = "OnChangeDeaths")]
 	public int Deaths = 0;
-	[SyncVar]
+	[SyncVar (hook = "OnChangeKills")]
 	public int Kills = 0;
 
-	// Use this for initialization
 	void Start ()
 	{
-		if (isServer) {
-			
-			GetComponent<Health> ().EventDeath += (player, killedBy) => {
-				Debug.Log ("Some idiot got killed!");
+		if (isLocalPlayer) {
+			var hud = GameObject.Find ("HUD");
+			KillsCounter = hud.transform.Find ("KillsCounter").GetComponent<Text> ();
+			DeathsCounter = hud.transform.Find ("DeathsCounter").GetComponent<Text> ();
+		}
+	}
+
+	[Server]
+	public void RegisterEvents (GameManager gameManager)
+	{
+		gameManager.EventDeath += (player, killedBy) => {
+			if (player == this.netId) {
 				Deaths++;
-            };
-                
-		}
+			}
+			if (killedBy == this.netId) {
+				Kills++;
+			}
+		};
+	}
 
+	void OnChangeKills (int kills)
+	{
 		if (isLocalPlayer) {
-			
-			DeathsCounter = GameObject.Find ("HUD").transform.FindChild ("DeathsCounter").GetComponent<Text> ();
-
-			GetComponent<Health> ().EventDeath += (player, killedBy) => {
-				Debug.Log ("Killed!");
-				DeathsCounter.text = Deaths.ToString ();
-			};
+			KillsCounter.text = kills.ToString ();
 		}
 	}
 
-	public void KilledPlayer ()
-	{
-		Kills++;
-        Debug.Log("Killed a bitch!");
-		RpcUpdateKillCounter ();
-	}
-
-	[ClientRpc]
-	void RpcUpdateKillCounter ()
+	void OnChangeDeaths (int deaths)
 	{
 		if (isLocalPlayer) {
-			KillsCounter = GameObject.Find ("HUD").transform.FindChild ("KillsCounter").GetComponent<Text> ();
-			KillsCounter.text = Kills.ToString ();
+			DeathsCounter.text = deaths.ToString ();
 		}
 	}
 }
