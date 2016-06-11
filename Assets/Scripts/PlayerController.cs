@@ -10,6 +10,8 @@ public class PlayerController : NetworkBehaviour
 
 	public float playerSpeed = 4;
 
+    public bool IsControlEnabled = true;
+
 	GameObject childCamera;
 
 	[SyncVar]
@@ -42,6 +44,9 @@ public class PlayerController : NetworkBehaviour
 	{
 		if (!isLocalPlayer)
 			return;
+
+        if (!IsControlEnabled)
+            return;
 		
 		var x = Input.GetAxis ("Horizontal") * playerSpeed * Time.deltaTime;
 		var y = Input.GetAxis ("Vertical") * playerSpeed * Time.deltaTime;

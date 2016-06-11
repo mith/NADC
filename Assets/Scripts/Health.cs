@@ -13,6 +13,8 @@ public class Health : NetworkBehaviour
 
 	public event HealthChangeDelegate EventHealthChange;
 
+    bool Invulnerable = false;
+
 	public int maxHealth = 100;
 
 	[SyncVar]
@@ -27,6 +29,9 @@ public class Health : NetworkBehaviour
 	[Server]
 	public void TakeDamage (GameObject byPlayer, int amount)
 	{
+        if (Invulnerable)
+            return;
+        
         NetworkInstanceId currentPlayerId = GetComponent<NetworkIdentity>().netId;
         NetworkInstanceId byPlayerId = byPlayer.GetComponent<NetworkIdentity>().netId;
 		int oldHealth = health;
@@ -62,8 +67,31 @@ public class Health : NetworkBehaviour
 	[ClientRpc]
 	void RpcRespawn (Vector3 position)
 	{
-		if (isLocalPlayer) {
-			transform.position = position;
-		}
+        StartCoroutine(RespawnTimer(position));
 	}
+
+    [Command]
+    void CmdSetInvulnerable(bool invulnerable)
+    {
+        Invulnerable = invulnerable;
+    }
+
+    IEnumerator RespawnTimer(Vector3 position)
+    {
+        if (isLocalPlayer) {
+            GetComponent<PlayerController>().IsControlEnabled = false;
+            CmdSetInvulnerable(true);
+        }
+
+        for(int x = 0; x < 20; x++) {
+            transform.Find ("Blood").GetComponent<ParticleSystem> ().Emit (6);
+            yield return new WaitForSeconds(0.2f);
+        }
+
+        if (isLocalPlayer) {
+            GetComponent<PlayerController>().IsControlEnabled = true;
+            CmdSetInvulnerable(false);
+            transform.position = position;
+        }
+    }
 }
