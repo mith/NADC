@@ -11,6 +11,8 @@ public class GameManager : NetworkManager
     
 	public event Health.DeathDelegate EventDeath;
     public event Health.HealthChangeDelegate EventHealthChange;
+    public event PlayerController.WeaponChangeDelegate EventWeaponChange;
+    public event PlayerController.WeaponChargingDelegate EventWeaponCharging;
 
 	public override void OnServerAddPlayer (NetworkConnection conn, short playerControllerId)
 	{
@@ -26,6 +28,14 @@ public class GameManager : NetworkManager
             Debug.Log("Gamemanager: Player " + p + " took " + a + " damage");
             EventHealthChange(p, a, o, n);
         };
+
+        player.GetComponent<PlayerController>().EventWeaponChange += (p, w) => {
+            Debug.Log("Gamemanager: Player " + p + " changed to weapon " + w);
+            EventWeaponChange(p, w);
+        };
+
+        player.GetComponent<WeaponHUD>().RegisterEvents(this);
+
         Debug.Log("GameManager: player " + player.GetComponent<NetworkIdentity>().netId + " events registered");
 	}
 }

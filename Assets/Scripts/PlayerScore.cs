@@ -17,8 +17,8 @@ public class PlayerScore : NetworkBehaviour
 	{
 		if (isLocalPlayer) {
 			var hud = GameObject.Find ("HUD");
-			KillsCounter = hud.transform.Find ("KillsCounter").GetComponent<Text> ();
-			DeathsCounter = hud.transform.Find ("DeathsCounter").GetComponent<Text> ();
+			KillsCounter = hud.transform.Find ("ScorePanel/KillsCounter").GetComponent<Text> ();
+			DeathsCounter = hud.transform.Find ("ScorePanel/DeathsCounter").GetComponent<Text> ();
 		}
 	}
 
