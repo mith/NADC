@@ -35,6 +35,7 @@ public class GameManager : NetworkManager
         };
 
         player.GetComponent<WeaponHUD>().RegisterEvents(this);
+        player.GetComponent<TopScoreHUD>().RegisterEvents(this);
 
         Debug.Log("GameManager: player " + player.GetComponent<NetworkIdentity>().netId + " events registered");
 	}

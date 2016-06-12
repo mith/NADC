@@ -17,10 +17,8 @@ public class PlayerController : NetworkBehaviour
     // The amount the walking speed gets divided when attacking
     public float attackingSpeedPenalty = 0.5f;
 
-    public bool IsControlEnabled {
-        get;
-        set;
-    }
+    [SyncVar]
+    public bool IsControlEnabled;
         
     public delegate void WeaponChangeDelegate (NetworkInstanceId player, Weapon weapon);
     public delegate void WeaponChargingDelegate (NetworkInstanceId player, bool charging, float percentage);

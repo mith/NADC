@@ -26,10 +26,10 @@ public class PlayerScore : NetworkBehaviour
 	public void RegisterEvents (GameManager gameManager)
 	{
 		gameManager.EventDeath += (player, killedBy) => {
-			if (player == this.netId) {
+			if (player == this) {
 				Deaths++;
 			}
-            if (killedBy == this.netId && player != this.netId) {
+            if (killedBy == this && player != this) {
 				Kills++;
 			}
 		};

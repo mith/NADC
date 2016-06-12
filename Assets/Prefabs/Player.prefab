@@ -19,6 +19,7 @@ GameObject:
   - 114: {fileID: 11462766}
   - 114: {fileID: 11412990}
   - 114: {fileID: 11401590}
+  - 114: {fileID: 11434494}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -308,6 +309,17 @@ MonoBehaviour:
   DeathsCounter: {fileID: 0}
   Deaths: 0
   Kills: 0
+--- !u!114 &11434494
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 148566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d55b85c725e94472d80a1ca57d556601, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!114 &11437122
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -335,7 +347,9 @@ MonoBehaviour:
   hudPrefab: {fileID: 173720, guid: a45d6466a1ff9428cb072b70c6a564f8, type: 2}
   arrowPrefab: {fileID: 138878, guid: 5122cdfb9b38f4fbaa7437563f95cd42, type: 2}
   arrowSpeed: 10
-  playerSpeed: 4
+  normalSpeed: 4
+  attackingSpeedPenalty: 0.5
+  IsControlEnabled: 0
 --- !u!114 &11462766
 MonoBehaviour:
   m_ObjectHideFlags: 1

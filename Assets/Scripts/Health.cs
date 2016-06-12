@@ -4,7 +4,7 @@ using System.Collections;
 
 public class Health : NetworkBehaviour
 {
-	public delegate void DeathDelegate (NetworkInstanceId player, NetworkInstanceId killedBy);
+	public delegate void DeathDelegate (GameObject player, GameObject killedBy);
 
 	public delegate void HealthChangeDelegate (NetworkInstanceId player, int amount, int oldHealth, int newHealth);
 
@@ -39,15 +39,14 @@ public class Health : NetworkBehaviour
         if (EventHealthChange != null) {
             EventHealthChange(currentPlayerId, -amount, oldHealth, health);
         }
-		RpcBleed ();
+		RpcBleedLight ();
         Debug.Log("Player " + currentPlayerId + " took " + amount + " damage from player " + byPlayerId);
 		if (health <= 0) {
 			var spawn = NetworkManager.singleton.GetStartPosition ();
-            RpcRespawn (spawn.position);
-            health = maxHealth;
+            Respawn (spawn.position);
 
             if (EventDeath != null) {
-                EventDeath(currentPlayerId, byPlayerId);
+                EventDeath(this.gameObject, byPlayer);
             }
 	
             if (EventHealthChange != null) {
@@ -59,39 +58,40 @@ public class Health : NetworkBehaviour
 	}
 
 	[ClientRpc]
-	void RpcBleed ()
+	void RpcBleedLight ()
 	{
 		transform.Find ("Blood").GetComponent<ParticleSystem> ().Emit (3);
 	}
 
-	[ClientRpc]
-	void RpcRespawn (Vector3 position)
+    [ClientRpc]
+    void RpcBleedHeavy ()
+    {
+        transform.Find ("Blood").GetComponent<ParticleSystem> ().Emit (6);
+    }
+
+	void Respawn (Vector3 position)
 	{
         StartCoroutine(RespawnTimer(position));
 	}
 
-    [Command]
-    void CmdSetInvulnerable(bool invulnerable)
-    {
-        Invulnerable = invulnerable;
-    }
-
     IEnumerator RespawnTimer(Vector3 position)
     {
-        if (isLocalPlayer) {
-            GetComponent<PlayerController>().IsControlEnabled = false;
-            CmdSetInvulnerable(true);
-        }
+        GetComponent<PlayerController>().IsControlEnabled = false;
+        Invulnerable = true;
 
         for(int x = 0; x < 20; x++) {
-            transform.Find ("Blood").GetComponent<ParticleSystem> ().Emit (6);
+            RpcBleedHeavy();
             yield return new WaitForSeconds(0.2f);
         }
 
-        if (isLocalPlayer) {
-            GetComponent<PlayerController>().IsControlEnabled = true;
-            CmdSetInvulnerable(false);
-            transform.position = position;
-        }
+        GetComponent<PlayerController>().IsControlEnabled = true;
+        Invulnerable = false;
+        RpcSpawnAt(position);
+    }
+
+    [ClientRpc]
+    void RpcSpawnAt(Vector3 position)
+    {
+        transform.position = position;
     }
 }
