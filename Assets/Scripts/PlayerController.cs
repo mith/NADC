@@ -26,6 +26,9 @@ public class PlayerController : NetworkBehaviour
     public event WeaponChangeDelegate EventWeaponChange;
     public event WeaponChargingDelegate EventWeaponCharging;
 
+    GameObject body;
+    GameObject shield;
+
     [SyncVar]
     Weapon currentWeapon;
 
@@ -47,12 +50,13 @@ public class PlayerController : NetworkBehaviour
 	{
         IsControlEnabled = true;
 		playerColor = Random.ColorHSV (0, 1, 0.2f, 1, 0.5f, 1);
-
+        body = transform.Find("Body").gameObject;
+        shield = transform.Find("Body/Shield").gameObject;
 	}
 
 	void Start ()
 	{
-		GetComponent<SpriteRenderer> ().color = playerColor;
+		body.GetComponent<SpriteRenderer> ().color = playerColor;
 	}
 
 	public override void OnStartLocalPlayer ()
@@ -76,6 +80,8 @@ public class PlayerController : NetworkBehaviour
         if (!IsControlEnabled)
             return;
 
+        body.transform.rotation = CursorDirection();
+
         if (Input.GetButtonDown("Weapon1")) {
             CurrentWeapon = Weapon.SwordAndShield;
         } else if (Input.GetButtonDown("Weapon2")) {
@@ -91,10 +97,15 @@ public class PlayerController : NetworkBehaviour
 
 		transform.Translate (x, y, 0);
 
-		if (Input.GetMouseButtonDown (0)) {
-			if (!attacking) {
-				StartCoroutine (Attack ());
-			}
+        if (Input.GetMouseButton(1)) {
+            shield.SetActive(true);
+        } else {
+            shield.SetActive(false);
+            if (Input.GetMouseButtonDown(0)) {
+                if (!attacking) {
+                    StartCoroutine(Attack());
+                }
+            }
 		}
 	}
 
@@ -120,7 +131,7 @@ public class PlayerController : NetworkBehaviour
             attacking = true;
 			yield return new WaitForSeconds (0.5f);
 
-			if (!Input.GetMouseButton (0)) {
+            if (!Input.GetMouseButton (0) || Input.GetMouseButton(1)) {
 				attacking = false;
 				break;
 			}
@@ -130,9 +141,9 @@ public class PlayerController : NetworkBehaviour
     [Command]
     void CmdSwing (Quaternion direction)
     {
-        var colliders = Physics2D.OverlapCircleAll(transform.position + direction * (Vector2.up * 2), 0.5f);
-        foreach (var collider in colliders) {
-            var health = collider.GetComponent<Health>();
+        var hit = Physics2D.Linecast(transform.position + direction * (Vector2.up), transform.position + direction * (Vector2.up * 2));
+        if (hit != null) {
+            var health = hit.collider.GetComponent<Health>();
             if (health != null) {
                 health.TakeDamage(this.gameObject, 60);
             }
