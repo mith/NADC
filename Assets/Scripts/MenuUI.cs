@@ -12,11 +12,15 @@ public class MenuUI : MonoBehaviour {
 
     public void HostGame()
     {
-        manager.StartHost();
+        if (!string.IsNullOrEmpty(manager.PlayerName)) {
+            manager.StartHost();
+        }
     }
 
     public void JoinGame()
     {
-        manager.StartClient();
+        if (!string.IsNullOrEmpty(manager.PlayerName)) {
+            manager.StartClient();
+        }
     }
 }

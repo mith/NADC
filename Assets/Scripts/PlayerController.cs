@@ -11,9 +11,9 @@ public class PlayerController : NetworkBehaviour
 {
 	public GameObject hudPrefab;
 	public GameObject arrowPrefab;
-	public float arrowSpeed = 10;
+	public float arrowSpeed = 20;
 
-	public float normalSpeed = 4;
+	public float normalSpeed = 300;
     // The amount the walking speed gets divided when attacking
     public float attackingSpeedPenalty = 0.5f;
 
@@ -29,6 +29,8 @@ public class PlayerController : NetworkBehaviour
     GameObject body;
     GameObject shield;
 
+    Rigidbody2D rigidBody;
+
     [SyncVar]
     Weapon currentWeapon;
 
@@ -43,20 +45,27 @@ public class PlayerController : NetworkBehaviour
 
 	GameObject childCamera;
 
-	[SyncVar]
+    [SyncVar]
 	Color playerColor;
 
 	void Awake ()
 	{
         IsControlEnabled = true;
-		playerColor = Random.ColorHSV (0, 1, 0.2f, 1, 0.5f, 1);
         body = transform.Find("Body").gameObject;
         shield = transform.Find("Body/Shield").gameObject;
+
+        GetComponent<NetworkTransformChild>().target = body.transform;
 	}
+
+    public override void OnStartServer()
+    {
+        playerColor = Random.ColorHSV(0, 1, 0.2f, 1, 0.5f, 1);
+        base.OnStartServer();
+    }
 
 	void Start ()
 	{
-		body.GetComponent<SpriteRenderer> ().color = playerColor;
+        body.GetComponent<SpriteRenderer>().color = playerColor;
 	}
 
 	public override void OnStartLocalPlayer ()
@@ -67,6 +76,8 @@ public class PlayerController : NetworkBehaviour
 		Instantiate (hudPrefab).name = "HUD";
 
         CmdChangeWeapon(currentWeapon);
+
+        rigidBody = GetComponent<Rigidbody2D>();
 	}
 
 	bool attacking;
@@ -80,7 +91,7 @@ public class PlayerController : NetworkBehaviour
         if (!IsControlEnabled)
             return;
 
-        body.transform.rotation = CursorDirection();
+        body.transform.localRotation = CursorDirection();
 
         if (Input.GetButtonDown("Weapon1")) {
             CurrentWeapon = Weapon.SwordAndShield;
@@ -90,17 +101,15 @@ public class PlayerController : NetworkBehaviour
 
         var walkingSpeed = normalSpeed * (attacking ? attackingSpeedPenalty : 1);
 		
-		var x = Input.GetAxis ("Horizontal") * walkingSpeed * Time.deltaTime;
-		var y = Input.GetAxis ("Vertical") * walkingSpeed * Time.deltaTime;
+        var x = Input.GetAxis("Horizontal");
+        var y = Input.GetAxis("Vertical");
 
-		GetComponent<Rigidbody2D> ().velocity = new Vector2 (x, y);
-
-		transform.Translate (x, y, 0);
+        rigidBody.MovePosition( rigidBody.position + (new Vector2(x, y).normalized * walkingSpeed * Time.deltaTime));
 
         if (Input.GetMouseButton(1)) {
-            shield.SetActive(true);
+            CmdBlock(true);
         } else {
-            shield.SetActive(false);
+            CmdBlock(false);
             if (Input.GetMouseButtonDown(0)) {
                 if (!attacking) {
                     StartCoroutine(Attack());
@@ -141,12 +150,13 @@ public class PlayerController : NetworkBehaviour
     [Command]
     void CmdSwing (Quaternion direction)
     {
-        var hit = Physics2D.Linecast(transform.position + direction * (Vector2.up), transform.position + direction * (Vector2.up * 2));
-        if (hit != null) {
-            var health = hit.collider.GetComponent<Health>();
-            if (health != null) {
-                health.TakeDamage(this.gameObject, 60);
-            }
+        var hit = Physics2D.Linecast(transform.position + direction * (Vector2.up * 0.1f), transform.position + direction * (Vector2.up * 2));
+        if (hit.collider == null)
+            return;
+        
+        var health = hit.collider.GetComponent<Health>();
+        if (health != null) {
+            health.TakeDamage(this.gameObject, 60);
         }
     }
 
@@ -167,6 +177,19 @@ public class PlayerController : NetworkBehaviour
 
 		Destroy (bullet, 3.0f);
 	}
+
+    [Command]
+    void CmdBlock (bool block)
+    {
+        shield.SetActive(block);
+        RpcBlock(block);
+    }
+
+    [ClientRpc]
+    void RpcBlock (bool block)
+    {
+        shield.SetActive(block);
+    }
 
     [Command]
     void CmdChangeWeapon(Weapon weapon)

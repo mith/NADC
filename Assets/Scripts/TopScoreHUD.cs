@@ -7,23 +7,32 @@ using UnityEngine.UI;
 public class TopScoreHUD : NetworkBehaviour 
 {
 
-    class Entry {
+    struct ScoreHudLine {
         public GameObject EntryObject;
         public Text KillCount;
         public Text PlayerName;
     }
 
+    struct Score {
+        public string PlayerName;
+        public int KillCount;
+    }
+
     GameObject topScorePanel;
 
-    List<Entry> entries;
+    List<ScoreHudLine> hudObjects;
 
     Dictionary<string, int> scores;
 
+    class SyncListScore : SyncListStruct<Score> { }
+
+    SyncListScore displayScores;
 
     void Awake()
     {
         scores = new Dictionary<string, int>();
-        entries = new List<Entry>();
+        hudObjects = new List<ScoreHudLine>();
+        displayScores = new SyncListScore();
     }
 
     public void RegisterEvents(GameManager gameManager)
@@ -31,64 +40,67 @@ public class TopScoreHUD : NetworkBehaviour
         gameManager.EventDeath += (player, killedBy) => {
             if (player != killedBy) {
                 var name = killedBy.GetComponent<PlayerNameHUD>().PlayerName;
-                RpcUpdateScores(name);
+                if (scores.ContainsKey(name)) {
+                    scores[name]++;
+                } else {
+                    scores[name] = 1;
+                }
+
+                var sorted = scores.OrderByDescending((KeyValuePair<string, int> arg) => arg.Value)
+                    .Take(3).Select(s => new Score { PlayerName = s.Key, KillCount = s.Value });
+                displayScores.Clear();
+                foreach (var score in sorted) {
+                    displayScores.Add(score);
+                }
             }
         };
     }
 
-    Entry createEntry(GameObject entryObject)
+    ScoreHudLine createHudLine(GameObject entryObject)
     {
-        return new Entry {
+        return new ScoreHudLine {
             EntryObject = entryObject,
             KillCount = entryObject.GetComponent<Text>(),
             PlayerName = entryObject.transform.Find("PlayerName").GetComponent<Text>()
         };
     }
 
-    public override void OnStartLocalPlayer()
+    public void Start()
     {
+        if (!isClient)
+            return;
+        
         topScorePanel = GameObject.Find("HUD/TopScorePanel");
 
         var numberOne = topScorePanel.transform.Find("NumberOne").gameObject;
         var numberTwo = topScorePanel.transform.Find("NumberTwo").gameObject;
         var numberThree = topScorePanel.transform.Find("NumberThree").gameObject;
-        entries.Add(createEntry(numberOne));
-        entries.Add(createEntry(numberTwo));
-        entries.Add(createEntry(numberThree));
+        hudObjects.Add(createHudLine(numberOne));
+        hudObjects.Add(createHudLine(numberTwo));
+        hudObjects.Add(createHudLine(numberThree));
 
-        foreach (var entry in entries) {
+        foreach (var entry in hudObjects) {
             entry.EntryObject.SetActive(false);
         }
 
-        base.OnStartLocalPlayer();
-    }
-
-    [ClientRpc]
-    void RpcUpdateScores(string name)
-    {
-        if (isLocalPlayer) {
-            if (scores.ContainsKey(name)) {
-                scores[name]++;
-            } else {
-                scores[name] = 1;
-            }
-
-            var sorted = scores.OrderByDescending((KeyValuePair<string, int> arg) => arg.Value);
-
+        displayScores.Callback = (SyncList<Score>.Operation op, int itemIndex) => {
             for (int i = 0; i < 3; i++) {
-                if (sorted.Count() > i) {
-                    UpdateEntry(entries[i], scores.ElementAt(i));
+                if (displayScores.Count() > i) {
+                    updateHudLine(hudObjects[i], displayScores.ElementAt(i));
                 } else {
-                    entries[i].EntryObject.SetActive(false);
+                    hudObjects[i].EntryObject.SetActive(false);
                 }
             }
-        }
+        };
+
+        base.OnStartClient();
     }
 
-    void UpdateEntry(Entry entry, KeyValuePair<string, int> score)
+
+    void updateHudLine(ScoreHudLine entry, Score score)
     {
         entry.EntryObject.SetActive(true);
-        entry.KillCount.text = score.Value.ToString();
-        entry.PlayerName.text = score.Key;
+        entry.KillCount.text = score.KillCount.ToString();
+        entry.PlayerName.text = score.PlayerName;
     }
 }

@@ -16,8 +16,8 @@ GameObject:
   - 114: {fileID: 11462766}
   - 114: {fileID: 11412990}
   - 114: {fileID: 11401590}
-  - 114: {fileID: 11434494}
-  - 50: {fileID: 5071212}
+  - 114: {fileID: 11482782}
+  - 50: {fileID: 5053616}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -234,7 +234,7 @@ Camera:
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
   m_StereoMirrorMode: 0
---- !u!50 &5071212
+--- !u!50 &5053616
 Rigidbody2D:
   serializedVersion: 2
   m_ObjectHideFlags: 1
@@ -247,9 +247,9 @@ Rigidbody2D:
   m_AngularDrag: 0.05
   m_GravityScale: 1
   m_IsKinematic: 0
-  m_Interpolate: 2
+  m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 1
+  m_CollisionDetection: 0
   m_Constraints: 4
 --- !u!61 &6133086
 BoxCollider2D:
@@ -359,7 +359,7 @@ MonoBehaviour:
   m_Script: {fileID: -1768714887, guid: 870353891bb340e2b2a9c8707e7419ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_TransformSyncMode: 1
+  m_TransformSyncMode: 2
   m_SendInterval: 0.04761905
   m_SyncRotationAxis: 7
   m_RotationSyncCompression: 0
@@ -383,17 +383,6 @@ MonoBehaviour:
   DeathsCounter: {fileID: 0}
   Deaths: 0
   Kills: 0
---- !u!114 &11434494
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 148566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d55b85c725e94472d80a1ca57d556601, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &11437122
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -436,6 +425,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HealthDisplay: {fileID: 0}
+--- !u!114 &11482782
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 148566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -1267208747, guid: 870353891bb340e2b2a9c8707e7419ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Target: {fileID: 411618}
+  m_ChildIndex: 0
+  m_SendInterval: 0.1
+  m_SyncRotationAxis: 7
+  m_RotationSyncCompression: 0
+  m_MovementThreshold: 0.001
+  m_InterpolateRotation: 0.5
+  m_InterpolateMovement: 0.5
 --- !u!114 &11489702
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -35,8 +35,16 @@ public class GameManager : NetworkManager
         };
 
         player.GetComponent<WeaponHUD>().RegisterEvents(this);
-        player.GetComponent<TopScoreHUD>().RegisterEvents(this);
 
         Debug.Log("GameManager: player " + player.GetComponent<NetworkIdentity>().netId + " events registered");
 	}
+
+    public override void OnServerSceneChanged(string sceneName)
+    {
+        var topScoreHud = GameObject.Find("GameMode").GetComponent<TopScoreHUD>();
+        if (topScoreHud != null) {
+            topScoreHud.RegisterEvents(this);
+        }
+        base.OnServerSceneChanged(sceneName);
+    }
 }
