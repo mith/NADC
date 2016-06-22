@@ -2,9 +2,10 @@
 using UnityEngine.Networking;
 using System.Collections;
 
-public enum Weapon {
-    Bow,
-    SwordAndShield,
+public enum Weapon
+{
+	Bow,
+	SwordAndShield,
 }
 
 public class PlayerController : NetworkBehaviour
@@ -14,58 +15,61 @@ public class PlayerController : NetworkBehaviour
 	public float arrowSpeed = 20;
 
 	public float normalSpeed = 300;
-    // The amount the walking speed gets divided when attacking
-    public float attackingSpeedPenalty = 0.5f;
+	// The amount the walking speed gets divided when attacking
+	public float attackingSpeedPenalty = 0.5f;
 
-    [SyncVar]
-    public bool IsControlEnabled;
-        
-    public delegate void WeaponChangeDelegate (NetworkInstanceId player, Weapon weapon);
-    public delegate void WeaponChargingDelegate (NetworkInstanceId player, bool charging, float percentage);
+	[SyncVar]
+	public bool IsControlEnabled;
 
-    public event WeaponChangeDelegate EventWeaponChange;
-    public event WeaponChargingDelegate EventWeaponCharging;
+	public delegate void WeaponChangeDelegate (NetworkInstanceId player, Weapon weapon);
 
-    GameObject body;
-    GameObject shield;
+	public delegate void WeaponChargingDelegate (NetworkInstanceId player, bool charging, float percentage);
 
-    Rigidbody2D rigidBody;
+	public event WeaponChangeDelegate EventWeaponChange;
+	public event WeaponChargingDelegate EventWeaponCharging;
 
-    [SyncVar]
-    Weapon currentWeapon;
+	GameObject body;
+	GameObject shield;
+	GameObject sword;
 
-    public Weapon CurrentWeapon {
-        get {
-            return currentWeapon;
-        }
-        set {
-            CmdChangeWeapon(value);
-        }
-    }
+	Rigidbody2D rigidBody;
+
+	[SyncVar]
+	Weapon currentWeapon;
+
+	public Weapon CurrentWeapon {
+		get {
+			return currentWeapon;
+		}
+		set {
+			CmdChangeWeapon (value);
+		}
+	}
 
 	GameObject childCamera;
 
-    [SyncVar]
+	[SyncVar]
 	Color playerColor;
 
 	void Awake ()
 	{
-        IsControlEnabled = true;
-        body = transform.Find("Body").gameObject;
-        shield = transform.Find("Body/Shield").gameObject;
-
-        GetComponent<NetworkTransformChild>().target = body.transform;
+		IsControlEnabled = true;
+		body = transform.Find ("Body").gameObject;
+		shield = transform.Find ("Body/Shield").gameObject;
+		sword = transform.Find ("Body/Sword").gameObject;
+		sword.GetComponent<OnHitDamager> ().Owner = this.gameObject;
+		GetComponent<NetworkTransformChild> ().target = body.transform;
 	}
 
-    public override void OnStartServer()
-    {
-        playerColor = Random.ColorHSV(0, 1, 0.2f, 1, 0.5f, 1);
-        base.OnStartServer();
-    }
+	public override void OnStartServer ()
+	{
+		playerColor = Random.ColorHSV (0, 1, 0.2f, 1, 0.5f, 1);
+		base.OnStartServer ();
+	}
 
 	void Start ()
 	{
-        body.GetComponent<SpriteRenderer>().color = playerColor;
+		body.GetComponent<SpriteRenderer> ().color = playerColor;
 	}
 
 	public override void OnStartLocalPlayer ()
@@ -75,9 +79,9 @@ public class PlayerController : NetworkBehaviour
 
 		Instantiate (hudPrefab).name = "HUD";
 
-        CmdChangeWeapon(currentWeapon);
+		CmdChangeWeapon (currentWeapon);
 
-        rigidBody = GetComponent<Rigidbody2D>();
+		rigidBody = GetComponent<Rigidbody2D> ();
 	}
 
 	bool attacking;
@@ -88,33 +92,33 @@ public class PlayerController : NetworkBehaviour
 		if (!isLocalPlayer)
 			return;
 
-        if (!IsControlEnabled)
-            return;
+		if (!IsControlEnabled)
+			return;
 
-        body.transform.localRotation = CursorDirection();
+		body.transform.localRotation = CursorDirection ();
 
-        if (Input.GetButtonDown("Weapon1")) {
-            CurrentWeapon = Weapon.SwordAndShield;
-        } else if (Input.GetButtonDown("Weapon2")) {
-            CurrentWeapon = Weapon.Bow;
-        }
+		if (Input.GetButtonDown ("Weapon1")) {
+			CurrentWeapon = Weapon.SwordAndShield;
+		} else if (Input.GetButtonDown ("Weapon2")) {
+			CurrentWeapon = Weapon.Bow;
+		}
 
-        var walkingSpeed = normalSpeed * (attacking ? attackingSpeedPenalty : 1);
+		var walkingSpeed = normalSpeed * (attacking ? attackingSpeedPenalty : 1);
 		
-        var x = Input.GetAxis("Horizontal");
-        var y = Input.GetAxis("Vertical");
+		var x = Input.GetAxis ("Horizontal");
+		var y = Input.GetAxis ("Vertical");
 
-        rigidBody.MovePosition( rigidBody.position + (new Vector2(x, y).normalized * walkingSpeed * Time.deltaTime));
+		rigidBody.MovePosition (rigidBody.position + (new Vector2 (x, y).normalized * walkingSpeed * Time.deltaTime));
 
-        if (Input.GetMouseButton(1)) {
-            CmdBlock(true);
-        } else {
-            CmdBlock(false);
-            if (Input.GetMouseButtonDown(0)) {
-                if (!attacking) {
-                    StartCoroutine(Attack());
-                }
-            }
+		if (Input.GetMouseButton (1)) {
+			CmdBlock (true);
+		} else {
+			CmdBlock (false);
+			if (Input.GetMouseButtonDown (0)) {
+				if (!attacking) {
+					StartCoroutine (Attack ());
+				}
+			}
 		}
 	}
 
@@ -132,33 +136,35 @@ public class PlayerController : NetworkBehaviour
 	IEnumerator Attack ()
 	{
 		for (;;) {
-            if (CurrentWeapon == Weapon.SwordAndShield) {
-                CmdSwing(CursorDirection());  
-            } else if (CurrentWeapon == Weapon.Bow) {
-                CmdFire(CursorDirection());
-            }
-            attacking = true;
+			if (CurrentWeapon == Weapon.SwordAndShield) {
+				CmdStartSwing (CursorDirection ());  
+			} else if (CurrentWeapon == Weapon.Bow) {
+				CmdFire (CursorDirection ());
+			}
+			attacking = true;
 			yield return new WaitForSeconds (0.5f);
 
-            if (!Input.GetMouseButton (0) || Input.GetMouseButton(1)) {
+			if (!Input.GetMouseButton (0) || Input.GetMouseButton (1)) {
+				CmdStopSwing ();
 				attacking = false;
 				break;
 			}
 		}
 	}
 
-    [Command]
-    void CmdSwing (Quaternion direction)
-    {
-        var hit = Physics2D.Linecast(transform.position + direction * (Vector2.up * 0.1f), transform.position + direction * (Vector2.up * 2));
-        if (hit.collider == null)
-            return;
-        
-        var health = hit.collider.GetComponent<Health>();
-        if (health != null) {
-            health.TakeDamage(this.gameObject, 60);
-        }
-    }
+	[Command]
+	void CmdStartSwing (Quaternion direction)
+	{
+		sword.SetActive (true);
+		RpcSwing (true);
+	}
+
+	[Command]
+	void CmdStopSwing ()
+	{
+		sword.SetActive (false);
+		RpcSwing (false);
+	}
 
 	[Command]
 	void CmdFire (Quaternion direction)
@@ -173,35 +179,41 @@ public class PlayerController : NetworkBehaviour
 
 		NetworkServer.Spawn (bullet);
 
-		bullet.GetComponent<Arrow> ().ShotBy = this.gameObject;
+		bullet.GetComponent<OnHitDamager> ().Owner = this.gameObject;
 
 		Destroy (bullet, 3.0f);
 	}
 
-    [Command]
-    void CmdBlock (bool block)
-    {
-        shield.SetActive(block);
-        RpcBlock(block);
-    }
+	[Command]
+	void CmdBlock (bool block)
+	{
+		shield.SetActive (block);
+		RpcBlock (block);
+	}
 
-    [ClientRpc]
-    void RpcBlock (bool block)
-    {
-        shield.SetActive(block);
-    }
+	[ClientRpc]
+	void RpcBlock (bool block)
+	{
+		shield.SetActive (block);
+	}
 
-    [Command]
-    void CmdChangeWeapon(Weapon weapon)
-    {
-        currentWeapon = weapon;
-        if (EventWeaponChange != null) {
-            EventWeaponChange(this.netId, weapon);
-        }
-    }
+	[ClientRpc]
+	void RpcSwing (bool swing)
+	{
+		sword.SetActive (swing);
+	}
 
-    void OnWeaponChange (Weapon weapon)
-    {
+	[Command]
+	void CmdChangeWeapon (Weapon weapon)
+	{
+		currentWeapon = weapon;
+		if (EventWeaponChange != null) {
+			EventWeaponChange (this.netId, weapon);
+		}
+	}
+
+	void OnWeaponChange (Weapon weapon)
+	{
         
-    }
+	}
 }

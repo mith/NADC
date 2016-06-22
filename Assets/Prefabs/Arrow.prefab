@@ -93,9 +93,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 138878}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 00885f3442a9d4868a2b0aaef635e274, type: 3}
+  m_Script: {fileID: 11500000, guid: b300078efa3074eb2832c7ed6298c9e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Owner: {fileID: 0}
+  DestroyOnHit: 1
 --- !u!114 &11453830
 MonoBehaviour:
   m_ObjectHideFlags: 1
